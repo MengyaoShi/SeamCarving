@@ -1,4 +1,4 @@
-testArr = [r * c for r in 6:-1:1, c in 3:-1:1]
+testArr = [r * c for r in 1:5, c in 1:4]
 
 # Selects and removes a seam from the array
 function selectSeam(arr)
@@ -15,7 +15,9 @@ function selectSeam(arr)
 	seam[1] = columnMin
 
 	# Now find the minimum from the next column
-	neighbors = Array{Float64,1}(3)
+	top = 0
+	bottom = 0
+
 	neighborIdx = Array{Int32,1}(3)
 	for row in 2:width
 		prevRow = seam[row-1]
@@ -23,11 +25,27 @@ function selectSeam(arr)
 		currMid = convert(Int32,currMid)
 		seam[row] = currMid
 		# Fix edge cases
-		for neighbor in 1:3
-			neighbors[neighbor] = arr[currMid+neighbor-2]
+		if currMid % height == 1
+			top = 1
+			bottom = 0
+			neighbors = Array{Float64,1}(2)
+		elseif currMid % height == 0
+			bottom = 1
+			top = 0
+			neighbors = Array{Float64,1}(2)
+		else
+			top = 0
+			bottom = 0
+			neighbors = Array{Float64,1}(3)
 		end
-		min = minimum(neighbors)
-		columnMin = findfirst(column, min)
+
+		neighbors = Array{Float64,1}(3 - bottom - top)
+		for neighbor in 1:length(neighbors)
+			neighbors[neighbor] = arr[currMid+neighbor-2+top]
+		end
+		
+		min = convert(Int32,minimum(neighbors))
+		columnMin = findfirst(neighbors, min)
 		seam[row] = currMid + columnMin-2
 	end
 	return seam
@@ -36,7 +54,6 @@ end
 # Remove seams specified from arr
 function removeSeam(arr,seam)
 	# Convert to 1D array
-	println(arr)
 	(height, width)=size(arr)
 	oneDim = Array{Float64,1}(height*width)
 	for idx in 1:(height*width)
@@ -58,11 +75,12 @@ function removeSeam(arr,seam)
 end
 
 function removeSeams(arr, seams)
-	for seam in seams
+	println("Initial array: ",arr)
+	for seam in 1:seams
 		seamArray = selectSeam(arr)
 		arr = removeSeam(arr, seamArray)
 	end
-	print(arr)
+	println("Removed seams: ",arr)
 end
 
-removeSeams(testArr,1)
+removeSeams(testArr,2)
