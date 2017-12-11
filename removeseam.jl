@@ -8,22 +8,22 @@ function selectSeam(arr)
 	column = Array{Float64,1}(height)
 	seam = Array{Int32,1}(width)
 	for row in 1:height
-		column[row] = arr[row]
+		column[row] = arr[row,width]
 	end
 	min = minimum(column)
 	columnMin = findfirst(column, min)
-	seam[1] = columnMin
+	seam[width] = columnMin + (height * (width-1))
 
 	# Now find the minimum from the next column
 	top = 0
 	bottom = 0
 
 	neighborIdx = Array{Int32,1}(3)
-	for row in 2:width
-		prevRow = seam[row-1]
-		currMid = prevRow + height
+	for row in (width-1):-1:1
+		prevRow = seam[row+1]
+		currMid = prevRow - height
+		
 		currMid = convert(Int32,currMid)
-		seam[row] = currMid
 		# Fix edge cases
 		if currMid % height == 1
 			top = 1
@@ -39,14 +39,17 @@ function selectSeam(arr)
 			neighbors = Array{Float64,1}(3)
 		end
 
+		# Get the 3 neighbor values
 		neighbors = Array{Float64,1}(3 - bottom - top)
 		for neighbor in 1:length(neighbors)
+			#println(currMid+neighbor-2+top)
 			neighbors[neighbor] = arr[currMid+neighbor-2+top]
 		end
-		
+
 		min = convert(Int32,minimum(neighbors))
+		
 		columnMin = findfirst(neighbors, min)
-		seam[row] = currMid + columnMin-2
+		seam[row] = currMid + columnMin-2+top
 	end
 	return seam
 end
@@ -78,9 +81,10 @@ function removeSeams(arr, seams)
 	println("Initial array: ",arr)
 	for seam in 1:seams
 		seamArray = selectSeam(arr)
+		#println(seamArray)
 		arr = removeSeam(arr, seamArray)
 	end
 	println("Removed seams: ",arr)
 end
 
-removeSeams(testArr,2)
+removeSeams(testArr,3)
